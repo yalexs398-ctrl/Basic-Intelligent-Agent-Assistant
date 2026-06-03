@@ -12,7 +12,7 @@ from langchain.agents import initialize_agent, AgentType
 from langchain.schema import SystemMessage
 
 from langchain_community.vectorstores import Chroma
-from langchain_community.embeddings import BaiduQianfanEmbeddings
+from langchain_community.embeddings import QianfanEmbeddingsEndpoint
 
 from typing import Optional, List
 import requests
