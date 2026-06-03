@@ -1,17 +1,25 @@
 # agent.py
+# agent.py
 import os
 import logging
 from dotenv import load_dotenv
-from langchain.llms.base import BaseLLM
+
+# LangChain 核心
+from langchain.llms.base import LLM
 from langchain.memory import ConversationBufferMemory
-from langchain.vectorstores import Chroma
-from langchain.embeddings import BaiduQianfanEmbeddings
 from langchain.tools import Tool
 from langchain.agents import initialize_agent, AgentType
 from langchain.schema import SystemMessage
+
+from langchain_community.vectorstores import Chroma
+from langchain_community.embeddings import BaiduQianfanEmbeddings
+
 from typing import Optional, List
 import requests
 from tavily import TavilyClient
+
+# 加载环境变量
+load_dotenv()
 
 # 配置日志
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
@@ -28,7 +36,7 @@ if missing_vars:
                      f"请在 .env 文件中设置这些变量")
 
 # 1. 自定义百度千帆LLM封装 
-class BaiduQianfanLLM(BaseLLM):
+class BaiduQianfanLLM(LLM):
     """封装百度千帆API为LangChain标准接口"""
     model: str = "ernie-3.5-turbo"
 
@@ -36,6 +44,11 @@ class BaiduQianfanLLM(BaseLLM):
     def _llm_type(self) -> str:
         return "baidu_qianfan"
 
+    @property
+    def _identifying_params(self) -> dict:
+        """返回模型参数"""
+        return {"model": self.model}
+    
     def _call(self, prompt: str, stop: Optional[List[str]] = None) -> str:
         try:
             # 获取access token
