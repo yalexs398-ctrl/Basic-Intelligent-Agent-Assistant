@@ -24,7 +24,7 @@ load_dotenv()
 required_env_vars = ["BAIDU_API_KEY", "BAIDU_SECRET_KEY"]
 missing_vars = [var for var in required_env_vars if not os.getenv(var)]
 if missing_vars:
-    raise ValueError(f"❌ 缺少必需的环境变量: {', '.join(missing_vars)}\n"
+    raise ValueError(f"缺少必需的环境变量: {', '.join(missing_vars)}\n"
                      f"请在 .env 文件中设置这些变量")
 
 # 1. 自定义百度千帆LLM封装 
@@ -322,4 +322,4 @@ if __name__ == "__main__":
         print("\n\n 程序已中断，再见！")
     except Exception as e:
         logger.error(f"程序运行失败: {str(e)}")
-        print(f"❌ 程序运行失败: {str(e)}")
+        print(f"程序运行失败: {str(e)}")
