@@ -107,10 +107,9 @@ class VectorMemory:
     def __init__(self, persist_directory="./chroma_db"):
         try:
             # 初始化嵌入模型
-            self.embeddings = BaiduQianfanEmbeddings(
-                api_key=os.getenv("BAIDU_API_KEY"),
-                secret_key=os.getenv("BAIDU_SECRET_KEY"),
-                model_name="ernie-text-embedding"
+            self.embeddings = QianfanEmbeddingsEndpoint(
+                qianfan_ak=os.getenv("BAIDU_API_KEY"),
+                qianfan_sk=os.getenv("BAIDU_SECRET_KEY"),
             )
             
             # 创建持久化向量数据库
