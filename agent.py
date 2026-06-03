@@ -1,5 +1,4 @@
 # agent.py
-# agent.py
 import os
 import logging
 from dotenv import load_dotenv
@@ -98,6 +97,7 @@ class VectorMemory:
             # 初始化嵌入模型
             self.embeddings = QianfanEmbeddingsEndpoint(
                 qianfan_ak=os.getenv("BAIDU_API_KEY"),
+                qianfan_sk=os.getenv("BAIDU_SECRET_KEY"),
             )
             
             # 创建持久化向量数据库
@@ -293,7 +293,7 @@ class AdvancedAgent:
 
 # 5. 运行Demo
 if __name__ == "__main__":
-    print("企业级 AI Agent 启动中...")
+    print("AI Agent 启动中...")
     print("=" * 50)
     
     # 检查环境变量
