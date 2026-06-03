@@ -98,7 +98,6 @@ class VectorMemory:
             # 初始化嵌入模型
             self.embeddings = QianfanEmbeddingsEndpoint(
                 qianfan_ak=os.getenv("BAIDU_API_KEY"),
-                qianfan_sk="",
             )
             
             # 创建持久化向量数据库
