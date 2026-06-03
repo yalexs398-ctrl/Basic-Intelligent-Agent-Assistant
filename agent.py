@@ -29,13 +29,13 @@ logger = logging.getLogger(__name__)
 load_dotenv()
 
 # 验证必需的环境变量
-required_env_vars = ["BAIDU_API_KEY", "BAIDU_SECRET_KEY"]
+required_env_vars = ["BAIDU_API_KEY"]
 missing_vars = [var for var in required_env_vars if not os.getenv(var)]
 if missing_vars:
     raise ValueError(f"缺少必需的环境变量: {', '.join(missing_vars)}\n"
-                     f"请在 .env 文件中设置这些变量")
+                     f"请在 .env 文件中设置 BAIDU_API_KEY")
 
-# 1. 自定义百度千帆LLM封装 
+# 1. 自定义百度千帆LLM封装（新版Bearer Token方式）
 class BaiduQianfanLLM(LLM):
     """封装百度千帆API为LangChain标准接口"""
     model: str = "ernie-3.5-turbo"
@@ -50,44 +50,34 @@ class BaiduQianfanLLM(LLM):
         return {"model": self.model}
     
     def _call(self, prompt: str, stop: Optional[List[str]] = None) -> str:
+        api_key = os.getenv("BAIDU_API_KEY")
+        if not api_key:
+            return "错误: 未找到 BAIDU_API_KEY，请在 .env 文件中配置"
+        
+        # 新版 API 地址和 Bearer Token 鉴权
+        url = "https://qianfan.baidubce.com/v2/chat/completions"
+        headers = {
+            "Content-Type": "application/json",
+            "Authorization": f"Bearer {api_key}"
+        }
+        payload = {
+            "model": self.model,
+            "messages": [{"role": "user", "content": prompt}],
+            "temperature": 0.7,
+            "max_tokens": 2000
+        }
+        
         try:
-            # 获取access token
-            token_url = "https://aip.baidubce.com/oauth/2.0/token"
-            token_params = {
-                "grant_type": "client_credentials",
-                "client_id": os.getenv("BAIDU_API_KEY"),     
-                "client_secret": os.getenv("BAIDU_SECRET_KEY") 
-            }
-            token_response = requests.post(token_url, params=token_params, timeout=30)
-            token_response.raise_for_status()
-            access_token = token_response.json().get("access_token")
+            response = requests.post(url, headers=headers, json=payload, timeout=60)
             
-            if not access_token:
-                raise ValueError("获取 access_token 失败")
+            if response.status_code == 401:
+                return "API Key 鉴权失败，请检查 .env 中的 BAIDU_API_KEY 是否正确"
             
-            # 调用千帆API
-            api_url = "https://aip.baidubce.com/rpc/2.0/ai_custom/v1/wenxinworkshop/chat/completions_pro"
-            headers = {"Content-Type": "application/json"}
-            payload = {
-                "messages": [{"role": "user", "content": prompt}],
-                "temperature": 0.7,
-                "max_tokens": 2000
-            }
-            
-            response = requests.post(
-                f"{api_url}?access_token={access_token}",
-                headers=headers,
-                json=payload,
-                timeout=60
-            )
             response.raise_for_status()
+            result = response.json()
             
-            result = response.json().get("result")
-            if not result:
-                error_msg = response.json().get("error_msg", "未知错误")
-                raise ValueError(f"API返回错误: {error_msg}")
-            
-            return result
+            # 新版 API 返回格式不同
+            return result.get("choices", [{}])[0].get("message", {}).get("content", "未获取到有效回复")
             
         except requests.exceptions.Timeout:
             logger.error("请求超时")
@@ -99,7 +89,6 @@ class BaiduQianfanLLM(LLM):
             logger.error(f"LLM调用失败: {str(e)}")
             return f"模型调用失败: {str(e)}"
 
-
 # 2. 构建向量数据库（长期记忆）
 class VectorMemory:
     """使用Chroma构建持久化知识库"""
@@ -109,7 +98,7 @@ class VectorMemory:
             # 初始化嵌入模型
             self.embeddings = QianfanEmbeddingsEndpoint(
                 qianfan_ak=os.getenv("BAIDU_API_KEY"),
-                qianfan_sk=os.getenv("BAIDU_SECRET_KEY"),
+                qianfan_sk="",
             )
             
             # 创建持久化向量数据库
