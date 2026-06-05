@@ -104,7 +104,7 @@ class AdvancedAgent:
 
 # 4. 运行入口
 if __name__ == "__main__":
-    print("AI Agent 已启动（仅使用百度千帆 API Key）")
+    print("AI Agent 已启动")
     print("输入 exit / quit / 退出 结束对话\n")
 
     agent = AdvancedAgent()
