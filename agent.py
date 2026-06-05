@@ -26,7 +26,7 @@ if not os.getenv("BAIDU_API_KEY"):
 
 # 1. 百度千帆 LLM（V2 版本）
 class BaiduQianfanLLM(LLM):
-    model: str = "ernie-3.5-8k"
+    model: str = "ernie-lite-8k"
 
     @property
     def _llm_type(self) -> str:
